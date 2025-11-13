@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SM Store QR Price Scanner</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- QR Code Scanner Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0038ff 0%, #0052cc 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 30px 0;
+    }
+
+    .header h1 {
+      font-weight: 700;
+      font-size: 2rem;
+    }
+
+    .sm { 
+      font-weight: 900; 
+    }
+    
+    .store { 
+      font-weight: 300; 
+    }
+
+    .header img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      transform: rotate(-10deg);
+    }
+
+    /* PROMO */
+    .promo-section {
+      background: #ff9c00;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .promo-section img {
+      width: 100%;
+      display: block;
+    }
+
+    .subtext {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.1rem;
+    }
+
+    /* SCANNER AREA */
+    .scanner-box {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .scanner-content {
+      padding: 30px;
+      text-align: center;
+    }
+
+    #reader {
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .product-result {
+      display: none;
+      padding: 30px;
+    }
+
+    .product-result.active {
+      display: block;
+    }
+
+    .product-info {
+      color: #0038ff;
+    }
+
+    .product-code {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .product-name {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #0038ff;
+      margin: 10px 0 20px 0;
+    }
+
+    .price-display {
+      background: #f0f4ff;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 20px 0;
+    }
+
+    .price-label {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .product-price {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #0038ff;
+    }
+
+    /* BUTTONS */
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .btn-primary {
+      background: #0038ff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052cc;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 56, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e91e63;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #c2185b;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border-left: 4px solid #c33;
+    }
+
+    .success-icon {
+      width: 60px;
+      height: 60px;
+      background: #4caf50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+      font-size: 2rem;
+    }
+
+    .footer {
+      text-align: center;
+      margin: 30px 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .admin-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .admin-link a {
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .admin-link a:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #0038ff;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f0f4ff;
+      border-top-color: #0038ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="header">
+      <h1><span class="sm">SM</span> <span class="store">STORE</span></h1>
+      <img src="SM LOGO.png" alt="SM LOGO">
+    </div>
+
+    <!-- PROMO BANNER -->
+    <div class="promo-section">
+      <img src="SM PROMO.gif" alt="SM PROMO">
+    </div>
+
+    <p class="subtext">Don't miss out on these aweSM promos!</p>
+
+    <!-- SCANNER BOX -->
+    <div class="scanner-box">
+      <!-- Initial State -->
+      <div class="scanner-content" id="initial-screen">
+        <div style="width: 80px; height: 80px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 2.5rem;">
+          📷
+        </div>
+        <h2 style="color: #0038ff; margin-bottom: 10px;">QR Price Scanner</h2>
+        <p style="color: #666; margin-bottom: 25px;">Scan product QR code to check price</p>
+        <button class="btn btn-primary" onclick="startScanning()">Start Scanning</button>
+      </div>
+
+      <!-- Scanner Active -->
+      <div id="scanner-screen" style="display: none;">
+        <div id="reader"></div>
+        <div style="padding: 20px;">
+          <p style="color: #666; text-align: center; margin-bottom: 15px;">Position QR code within the frame</p>
+          <button class="btn btn-secondary" onclick="stopScanning()">Stop Scanning</button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading" id="loading-screen">
+        <div class="spinner"></div>
+        <p>Fetching product information...</p>
+      </div>
+
+      <!-- Product Result -->
+      <div class="product-result" id="result-screen">
+        <div class="success-icon">✓</div>
+        <div class="product-info">
+          <p class="product-code" id="product-code">Product Code: QR001</p>
+          <h3 class="product-name" id="product-name">Loading...</h3>
+          
+          <div class="price-display">
+            <p class="price-label">Price</p>
+            <div class="product-price" id="product-price">₱0.00</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="resetScanner()">Scan Another Product</button>
+      </div>
+
+      <!-- Error Display -->
+      <div id="error-display" style="display: none; padding: 20px;">
+        <div class="error-message" id="error-message"></div>
+        <button class="btn btn-primary" onclick="resetScanner()">Try Again</button>
+      </div>
+    </div>
+
+    <p class="footer">We've Got It All For You!</p>
+
+    <!-- Admin Link -->
+    <div class="admin-link">
+      <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 5px;">Store Administrator</p>
+      <a href="admin_panel.html">Access Admin Panel</a>
+    </div>
+  </div>
+
+  <script>
+    let html5QrCode;
+    const API_URL = 'http://localhost/seradm/api.php'; // Change to server IP or file directory
+
+    function startScanning() {
+      document.getElementById('initial-screen').style.display = 'none';
+      document.getElementById('scanner-screen').style.display = 'block';
+      
+      html5QrCode = new Html5Qrcode("reader");
+      
+      html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 30,
+          qrbox: { width: 250, height: 250 }
+        },
+        onScanSuccess,
+        onScanError
+      ).catch(err => {
+        showError("Camera access denied. Please allow camera permissions.");
+        resetScanner();
+      });
+    }
+
+    function stopScanning() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          resetScanner();
+        });
+      }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      console.log(`QR Code detected: ${decodedText}`);
+      
+      if (html5QrCode) {
+        html5QrCode.stop();
+      }
+      
+      document.getElementById('scanner-screen').style.display = 'none';
+      document.getElementById('loading-screen').classList.add('active');
+      
+      fetchProduct(decodedText);
+    }
+
+    function onScanError(errorMessage) {
+    }
+
+    function fetchProduct(qrCode) {
+      fetch(`${API_URL}?action=scan&qr_code=${qrCode}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loading-screen').classList.remove('active');
+          
+          if (data.success) {
+            displayProduct(data.product);
+          } else {
+            showError(data.error || 'Product not found in database');
+          }
+        })
+        .catch(error => {
+          document.getElementById('loading-screen').classList.remove('active');
+          showError('Failed to connect to server. Please check your connection.');
+          console.error('Error:', error);
+        });
+    }
+
+    function displayProduct(product) {
+      document.getElementById('product-code').textContent = `Product Code: ${product.code}`;
+      document.getElementById('product-name').textContent = product.name;
+      document.getElementById('product-price').textContent = `₱${parseFloat(product.price).toFixed(2)}`;
+      
+      document.getElementById('result-screen').classList.add('active');
+    }
+
+    function showError(message) {
+      document.getElementById('error-message').textContent = message;
+      document.getElementById('error-display').style.display = 'block';
+    }
+
+    function resetScanner() {
+      document.getElementById('scanner-screen').style.display = 'none';
+      document.getElementById('loading-screen').classList.remove('active');
+      document.getElementById('result-screen').classList.remove('active');
+      document.getElementById('error-display').style.display = 'none';
+      
+      document.getElementById('initial-screen').style.display = 'block';
+      
+      if (html5QrCode) {
+        html5QrCode.clear();
+      }
+    }
+  </script>
+</body>
+</html>
